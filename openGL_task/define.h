@@ -126,11 +126,13 @@ namespace math
 	static void mouse_convert_to_clip(float& x, float& y)
 	{
 		glm::mat4 windowmatrix = glm::mat4(1.0f);
+		windowmatrix[1][1] = -1;
+		windowmatrix = glm::scale(windowmatrix, glm::vec3(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2, 1));
 		windowmatrix = glm::translate(windowmatrix, glm::vec3(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2, 0));
-		windowmatrix = glm::scale(windowmatrix, glm::vec3(glutGet(GLUT_WINDOW_WIDTH)/2, glutGet(GLUT_WINDOW_HEIGHT)/2, 1));
-		glm::vec4 clipPos = windowmatrix * glm::vec4(x, y, 0, 1);
+		auto clipMatrix = glm::inverse(windowmatrix);
+		glm::vec4 clipPos = clipMatrix * glm::vec4(x, y, 0.0f, 1.0f);
 		x = clipPos.x;
-		y = -clipPos.y;
+		y = clipPos.y;
 	}
 	static void old_mouse_convert_to_clip(float& x, float& y)
 	{

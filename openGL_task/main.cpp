@@ -164,17 +164,17 @@ GLvoid gameLoop()
 }
 
 GLvoid MouseMotion(int x, int y) {
-	
+
+	float xpos = static_cast<float>(x);
+	float ypos = static_cast<float>(y);
+	math::old_mouse_convert_to_clip(xpos, ypos);
 	if (g_mouseLine != nullptr)
 	{
 		if (g_mouseLine->isClicked())
 		{
-			float xpos = static_cast<float>(x);
-			float ypos = static_cast<float>(y);
-			math::old_mouse_convert_to_clip(xpos, ypos);
-			/*glm::mat4 inverseView = glm::inverse(g_camera->GetViewMatrix());
-			glm::vec2 worldPos = inverseView * glm::vec4(xpos, ypos, 1.0f, 1.0f);*/
-			g_mouseLine->drag(xpos, ypos);
+			
+			glm::vec2 pos = glm::vec4(xpos, ypos, 1.0f, 1.0f);
+			g_mouseLine->drag(pos.x, pos.y);
 		}
 	}
 	
@@ -194,7 +194,8 @@ GLvoid Mouse(int button, int state, int x, int y) {
 		{
 			g_mouseLine = new mouseLine;
 		}
-		g_mouseLine->click(xpos, ypos, xpos, ypos);
+		glm::vec2 pos = glm::vec4(xpos, ypos, 1.0f, 1.0f);
+		g_mouseLine->click(pos.x, pos.y, pos.x, pos.y);
 	}
 	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 	{
@@ -202,8 +203,8 @@ GLvoid Mouse(int button, int state, int x, int y) {
 		g_mouseLine->collisionCheck();
 		if (g_mouseLine != nullptr)
 		{
-			glm::vec2 realPos = g_camera->GetPerspectiveMatrix() * g_camera->GetViewMatrix() * glm::vec4(g_mouseLine->getP1(), 1.0f, 1.0f);
-			glm::vec2 realPos2 = g_camera->GetPerspectiveMatrix() * g_camera->GetViewMatrix() * glm::vec4(g_mouseLine->getP2(), 1.0f, 1.0f);
+			glm::vec2 realPos = g_mouseLine->getP1();
+			glm::vec2 realPos2 = g_mouseLine->getP2();
 			cout <<"(" << realPos.x << "," << realPos.y << "), (" << realPos2.x << "," << realPos2.y << ")" << endl;
 			delete g_mouseLine;
 			g_mouseLine = nullptr;
