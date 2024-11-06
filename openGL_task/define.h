@@ -1,0 +1,134 @@
+#pragma once
+#define SINGLE(type) public:\
+			static type* Instance()\
+			{\
+			static type instance;\
+			return &instance;\
+			}\
+			private:\
+			type();\
+			~type();
+struct Model
+{
+	Model(const string& filename) {
+		if (filename == "NULL")
+		{
+			return;
+		}
+
+		std::ifstream file(filename);
+		if (!file.is_open()) {
+			std::cerr << "Error opening file" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		std::string line;
+		while (std::getline(file, line)) {
+			if (line.substr(0, 2) == "v ") {
+				glm::vec3 temp;
+				std::istringstream s(line.substr(2));
+				s >> temp.x >> temp.y >> temp.z;
+				this->vertices.push_back(temp);
+			}
+			else if (line.substr(0, 2) == "vn")
+			{
+				glm::vec3 temp;
+				std::istringstream s(line.substr(3));
+				s >> temp.x >> temp.y >> temp.z;
+				this->normals.push_back(temp);
+			}
+			else if (line.substr(0, 2) == "vt")
+			{
+				glm::vec3 temp;
+				std::istringstream s(line.substr(3));
+				s >> temp.x >> temp.y >> temp.z;
+				this->texture_coords.push_back(temp);
+			}
+			else if (line.substr(0, 2) == "f ") {
+				std::istringstream s(line.substr(2));
+				std::vector<std::string> tokens;
+				std::string token;
+				while (s >> token) {
+					tokens.push_back(token);
+				}
+				vector<UINT> v;
+				vector<UINT> vt;
+				vector<UINT> vn;
+				for (int i = 0; i < tokens.size(); ++i)
+				{
+
+
+					// 1/2/3 1//3  1
+					if (tokens[i].find("/") == std::string::npos)
+					{
+						UINT v1;
+						std::stringstream ss(tokens[i]);
+						ss >> v1;
+						v.push_back(v1);
+						continue;
+					}
+					else
+					{
+						tokens[i].replace(tokens[i].find("/"), 1, " ");
+						std::stringstream ss(tokens[i]);
+
+						if (tokens[i].find("  ") != std::string::npos)
+						{
+							UINT v1, vn1;
+							ss >> v1 >> vn1;
+							v.push_back(v1);
+							vn.push_back(vn1);
+						}
+						else if (tokens[i].find(" ") != std::string::npos)
+						{
+							UINT v1, vn1, vt1;
+							ss >> v1 >> vt1 >> vn1;
+							v.push_back(v1);
+							vt.push_back(vt1);
+							vn.push_back(vn1);
+						}
+						else
+						{
+							UINT v1;
+							ss >> v1;
+							v.push_back(v1);
+						}
+					}
+
+				}
+				if (v.size() > 0)
+				{
+					this->faces.emplace_back(v[0] - 1, v[1] - 1, v[2] - 1);
+				}
+				if (vn.size() > 0)
+				{
+					this->normal_faces.emplace_back(vn[0] - 1, vn[1] - 1, vn[2] - 1);
+				}
+				if (vt.size() > 0)
+				{
+					this->texture_faces.emplace_back(vt[0] - 1, vt[1] - 1, vt[2] - 1);
+				}
+
+			}
+		}
+		file.close();
+	}
+	vector<glm::vec3>	vertices;
+	vector<glm::vec3>	colors;
+	vector<glm::vec3>	normals;
+	vector<glm::vec3>	texture_coords;
+	vector<glm::uvec3>	faces;
+	vector<glm::uvec3>	normal_faces;
+	vector<glm::uvec3>	texture_faces;
+};
+namespace math
+{
+	static void mouse_convert_to_clip(float& x, float& y)
+	{
+		auto width = glutGet(GLUT_WINDOW_WIDTH);
+		auto height = glutGet(GLUT_WINDOW_HEIGHT);
+		x = (x - width / 2.f) / glm::abs(width / 2.f);
+		y = (y - height / 2.f) / glm::abs(height / 2.f);
+		y = -y;
+	}
+}
