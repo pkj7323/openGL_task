@@ -125,6 +125,15 @@ namespace math
 {
 	static void mouse_convert_to_clip(float& x, float& y)
 	{
+		glm::mat4 windowmatrix = glm::mat4(1.0f);
+		windowmatrix = glm::translate(windowmatrix, glm::vec3(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2, 0));
+		windowmatrix = glm::scale(windowmatrix, glm::vec3(glutGet(GLUT_WINDOW_WIDTH)/2, glutGet(GLUT_WINDOW_HEIGHT)/2, 1));
+		glm::vec4 clipPos = windowmatrix * glm::vec4(x, y, 0, 1);
+		x = clipPos.x;
+		y = -clipPos.y;
+	}
+	static void old_mouse_convert_to_clip(float& x, float& y)
+	{
 		auto width = glutGet(GLUT_WINDOW_WIDTH);
 		auto height = glutGet(GLUT_WINDOW_HEIGHT);
 		x = (x - width / 2.f) / glm::abs(width / 2.f);
@@ -132,3 +141,8 @@ namespace math
 		y = -y;
 	}
 }
+struct Model2D {
+	vector<glm::vec3> vertices;
+	vector<glm::vec3> colors;
+	vector<glm::uvec3> faces;
+};

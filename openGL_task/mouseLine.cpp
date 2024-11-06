@@ -16,6 +16,9 @@ mouseLine::~mouseLine()
 
 void mouseLine::draw()
 {
+	glUniformMatrix4fv(glGetUniformLocation(Shader::Instance()->GetID(), "world")
+		, 1, GL_FALSE
+		, glm::value_ptr(glm::mat4(1.0f)));
 	glBegin(GL_LINES);
 	glVertex2f(x1, y1);
 	glVertex2f(x2, y2);

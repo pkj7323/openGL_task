@@ -28,6 +28,9 @@
     <Filter Include="Line">
       <UniqueIdentifier>{ceedc3c5-1886-443c-91a8-2d8933807cd5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="object">
+      <UniqueIdentifier>{2dc0f894-10a7-456f-a27e-ebb2ba2a2e4f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -44,6 +47,12 @@
     </ClCompile>
     <ClCompile Include="mouseLine.cpp">
       <Filter>Line</Filter>
+    </ClCompile>
+    <ClCompile Include="shape.cpp">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="object.cpp">
+      <Filter>object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -69,6 +78,12 @@
     </ClInclude>
     <ClInclude Include="mouseLine.h">
       <Filter>Line</Filter>
+    </ClInclude>
+    <ClInclude Include="shape.h">
+      <Filter>object</Filter>
+    </ClInclude>
+    <ClInclude Include="object.h">
+      <Filter>object</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

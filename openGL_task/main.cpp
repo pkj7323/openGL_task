@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CameraManager.h"
 #include "mouseLine.h"
+#include "object.h"
 #include "Shader.h"
 
 
@@ -18,8 +19,9 @@ std::uniform_real_distribution<float> dis{ -1.f, 1.f };
 ///------전역변수
 CameraManager* g_camera = nullptr;
 mouseLine* g_mouseLine = nullptr;
+vector<object*> g_objects;
 ///------ 함수
-GLvoid drawScene(GLvoid);
+
 GLvoid Reshape(int w, int h);
 GLvoid Keyboard(unsigned char key, int x, int y);
 GLvoid Mouse(int button, int state, int x, int y);
@@ -31,6 +33,8 @@ GLvoid TimerFunction(int value);
 GLvoid SpecialKeyboard(int key, int x, int y);
 GLvoid mouseWheel(int button, int dir, int x, int y);
 GLvoid gameLoop();
+void update();
+void draw();
 ///------ 함수
 void main(int argc, char** argv)
 {
@@ -68,15 +72,17 @@ void main(int argc, char** argv)
 
 	{
 		g_camera = new CameraManager;
-		g_camera->SetCamera(glm::vec3(0, 5, 10),
-			glm::vec3(0, 1, 0), YAW, -10.f, 45, SPEED, SENSITIVITY);
+		g_camera->SetCamera(glm::vec3(0, 0, 5),
+			glm::vec3(0, 1, 0), YAW, 0.f, 45, SPEED, SENSITIVITY);
+		g_camera->SetPerspective(45,
+			glutGet(GLUT_WINDOW_WIDTH) / glutGet(GLUT_WINDOW_HEIGHT), 0.1, 100);
 
 	}
 	{
-		
+		g_objects.push_back(new object);
 	}
-
-	glutDisplayFunc(drawScene);
+	glViewport(0, 0, 1600, 800);
+	glutDisplayFunc(draw);
 	glutReshapeFunc(Reshape);
 	glutKeyboardFunc(Keyboard);
 	glutSpecialFunc(SpecialKeyboard);
@@ -97,75 +103,122 @@ GLvoid mouseWheel(int button, int dir, int x, int y)
 	glutPostRedisplay();
 }
 
+void update()
+{
+	for (auto object : g_objects)
+	{
+		object->update();
+	}
+}
+
+void draw()
+{
+	glClearColor(0.5, 0.5, 0.5, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+	Shader::Instance()->Use();
+	
+
+	//행렬 변환 없을때
+	{
+		//TODO: 여기게 객체의 draw함수를 호출하여 그리기
+		if (g_mouseLine != nullptr)
+		{
+			glUniformMatrix4fv(glGetUniformLocation(Shader::Instance()->GetID(), "projection")
+				, 1, GL_FALSE
+				, glm::value_ptr(glm::mat4(1.0f)));
+			glUniformMatrix4fv(glGetUniformLocation(Shader::Instance()->GetID(), "view")
+				, 1, GL_FALSE
+				, glm::value_ptr(glm::mat4(1.0f)));
+			g_mouseLine->draw();
+		}
+
+	}
+	glUniformMatrix4fv(glGetUniformLocation(Shader::Instance()->GetID(), "projection")
+		, 1, GL_FALSE
+		, glm::value_ptr(g_camera->GetPerspectiveMatrix()));
+	glUniformMatrix4fv(glGetUniformLocation(Shader::Instance()->GetID(), "view")
+		, 1, GL_FALSE
+		, glm::value_ptr(g_camera->GetViewMatrix()));
+	glUniformMatrix4fv(glGetUniformLocation(Shader::Instance()->GetID(), "world")
+		, 1, GL_FALSE
+		, glm::value_ptr(glm::mat4(1.0f)));
+	{
+		for (auto object : g_objects)
+		{
+			object->draw();
+		}
+	}
+
+
+	glutSwapBuffers();
+}
+
 GLvoid gameLoop()
 {
 	//TODO: 객체의 업데이트 함수 호출
-	glutPostRedisplay();
+	update();
+	draw();
+	
 }
 
 GLvoid MouseMotion(int x, int y) {
-	float xpos = static_cast<float>(x);
-	float ypos = static_cast<float>(y);
+	
 	if (g_mouseLine != nullptr)
 	{
 		if (g_mouseLine->isClicked())
 		{
-			math::mouse_convert_to_clip(xpos, ypos);
+			float xpos = static_cast<float>(x);
+			float ypos = static_cast<float>(y);
+			math::old_mouse_convert_to_clip(xpos, ypos);
+			/*glm::mat4 inverseView = glm::inverse(g_camera->GetViewMatrix());
+			glm::vec2 worldPos = inverseView * glm::vec4(xpos, ypos, 1.0f, 1.0f);*/
 			g_mouseLine->drag(xpos, ypos);
 		}
 	}
 	
-	glutPostRedisplay();
+	gameLoop();
 }
 GLvoid Mouse(int button, int state, int x, int y) {
 
 
 	float xpos = static_cast<float>(x);
 	float ypos = static_cast<float>(y);
-	math::mouse_convert_to_clip(xpos, ypos);
+	math::old_mouse_convert_to_clip(xpos, ypos);
+	/*glm::mat4 inverseView = glm::inverse(g_camera->GetViewMatrix());
+	glm::vec2 worldPos = inverseView * glm::vec4(xpos, ypos, 1.0f, 1.0f);*/
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
+		if (g_mouseLine == nullptr)
+		{
+			g_mouseLine = new mouseLine;
+		}
 		g_mouseLine->click(xpos, ypos, xpos, ypos);
 	}
 	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 	{
 		
-
+		g_mouseLine->collisionCheck();
+		if (g_mouseLine != nullptr)
+		{
+			glm::vec2 realPos = g_camera->GetPerspectiveMatrix() * g_camera->GetViewMatrix() * glm::vec4(g_mouseLine->getP1(), 1.0f, 1.0f);
+			glm::vec2 realPos2 = g_camera->GetPerspectiveMatrix() * g_camera->GetViewMatrix() * glm::vec4(g_mouseLine->getP2(), 1.0f, 1.0f);
+			cout <<"(" << realPos.x << "," << realPos.y << "), (" << realPos2.x << "," << realPos2.y << ")" << endl;
+			delete g_mouseLine;
+			g_mouseLine = nullptr;
+		}
 	}
 
 	
-	glutPostRedisplay();
+	gameLoop();
 }
 GLvoid Reshape(int w, int h)
 {
 	glViewport(0, 0, w, h);
-	glutPostRedisplay();
+	gameLoop();
 }
-GLvoid drawScene()
-{
-	//--- 변경된 배경색 설정
-	//--- 화면 지우기(invaildRect)
-	glViewport(0, 0, 800, 800);
-	glClearColor(0.5, 0.5, 0.5, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	Shader::Instance()->Use();
-	/*glUniformMatrix4fv(glGetUniformLocation(Shader::Instance()->GetID(), "projection")
-		, 1, GL_FALSE
-		, glm::value_ptr(g_camera->GetPerspectiveMatrix()));
-	glUniformMatrix4fv(glGetUniformLocation(Shader::Instance()->GetID(), "view")
-		, 1, GL_FALSE
-		, glm::value_ptr(g_camera->GetViewMatrix()));*/
-	{
-		//TODO: 여기게 객체의 draw함수를 호출하여 그리기
-		if (g_mouseLine != nullptr)
-		{
-			g_mouseLine->draw();
-		}
-	}
-	
-	glutSwapBuffers();
-}
 //타이머
 GLvoid TimerFunction(int value)
 {
