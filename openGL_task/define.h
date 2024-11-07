@@ -123,6 +123,15 @@ struct Model
 };
 namespace math
 {
+	static float CCW(glm::vec2 a, glm::vec2 b, glm::vec2 c)
+	{
+		return (c.y - a.y) * (b.x - a.x) - (b.y - a.y) * (c.x - a.x);
+	}
+	static bool intersect(glm::vec2 lineStart, glm::vec2 lineEnd, glm::vec2 p1, glm::vec2 p2)
+	{
+		return CCW(lineStart, p1, p2) * CCW(lineEnd, p1, p2) <= 0
+		&& CCW(lineStart, lineEnd, p1) * CCW(lineStart, lineEnd, p2) <= 0;
+	}
 	static void mouse_convert_to_clip(float& x, float& y)
 	{
 		glm::mat4 windowmatrix = glm::mat4(1.0f);
@@ -147,4 +156,11 @@ struct Model2D {
 	vector<glm::vec3> vertices;
 	vector<glm::vec3> colors;
 	vector<glm::uvec3> faces;
+};
+struct intersection
+{
+	intersection(glm::vec2 point, UINT index1, UINT index2) : point(point), index1(index1), index2(index2) {}
+	glm::vec2 point;
+	UINT index1;
+	UINT index2;
 };

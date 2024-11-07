@@ -66,7 +66,7 @@ void main(int argc, char** argv)
 
 	Shader::Instance()->make_ShaderProgram("vertex.glsl", "fragment.glsl");
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	glEnable(GL_MULTISAMPLE);
 
 
@@ -137,10 +137,10 @@ void draw()
 	}
 	glUniformMatrix4fv(glGetUniformLocation(Shader::Instance()->GetID(), "projection")
 		, 1, GL_FALSE
-		, glm::value_ptr(g_camera->GetPerspectiveMatrix()));
+		, glm::value_ptr(glm::mat4(1.0f)));
 	glUniformMatrix4fv(glGetUniformLocation(Shader::Instance()->GetID(), "view")
 		, 1, GL_FALSE
-		, glm::value_ptr(g_camera->GetViewMatrix()));
+		, glm::value_ptr(glm::mat4(1.0f)));
 	glUniformMatrix4fv(glGetUniformLocation(Shader::Instance()->GetID(), "world")
 		, 1, GL_FALSE
 		, glm::value_ptr(glm::mat4(1.0f)));
@@ -173,7 +173,7 @@ GLvoid MouseMotion(int x, int y) {
 		if (g_mouseLine->isClicked())
 		{
 			
-			glm::vec2 pos = glm::vec4(xpos, ypos, 1.0f, 1.0f);
+			glm::vec2 pos = glm::vec2(xpos, ypos);
 			g_mouseLine->drag(pos.x, pos.y);
 		}
 	}
@@ -194,13 +194,13 @@ GLvoid Mouse(int button, int state, int x, int y) {
 		{
 			g_mouseLine = new mouseLine;
 		}
-		glm::vec2 pos = glm::vec4(xpos, ypos, 1.0f, 1.0f);
+		glm::vec2 pos = glm::vec2(xpos, ypos);
 		g_mouseLine->click(pos.x, pos.y, pos.x, pos.y);
 	}
 	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 	{
 		
-		g_mouseLine->collisionCheck();
+		g_mouseLine->collisionCheck(g_objects);
 		if (g_mouseLine != nullptr)
 		{
 			glm::vec2 realPos = g_mouseLine->getP1();
