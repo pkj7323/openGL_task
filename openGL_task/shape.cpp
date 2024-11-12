@@ -14,6 +14,8 @@ shape::shape() : VAO{ NULL }, VBO_pos{ NULL }, VBO_color{ NULL }
 	scale_factor = glm::vec3(1, 1, 1);
 	translate_factor = glm::vec3(0, 0, 0);
 	rotate_factor = glm::vec3(0, 0, 0);
+	size = glm::vec2(0.25, 0.25);
+	center = glm::vec3(0, 0, 0);
 
 	uniformWorld = glGetUniformLocation(Shader::Instance()->GetID(), "world");
 
@@ -117,7 +119,7 @@ void shape::draw()
 {
 	//GLuint shaderProgram = Shader::Instance()->GetID();
 	glUniformMatrix4fv(uniformWorld, 1, GL_FALSE, glm::value_ptr(worldTransform));
-
+	Shader::Instance()->Use();
 
 
 	assert(VAO != NULL && "VAO ¼³Á¤¾ÈµÊ");
@@ -126,6 +128,15 @@ void shape::draw()
 	assert(EBO != NULL && "EBO ¼³Á¤¾ÈµÊ");
 
 	glBindVertexArray(VAO);
+	{
+		glBegin(GL_LINE_LOOP);
+		glColor3f(1.0f, 0.0f, 0.0f);
+		glVertex3f(get_bb().z, get_bb().y,0);
+		glVertex3f(get_bb().x, get_bb().y,0);
+		glVertex3f(get_bb().x, get_bb().w,0);
+		glVertex3f(get_bb().z, get_bb().w,0);
+		glEnd();
+	}
 	glDrawElements(mode, 3 * model->faces.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
@@ -152,6 +163,10 @@ void shape::Translate(glm::vec3 scalar)
 	translate_factor.z += scalar.z;
 	update();
 }
+void shape::Translate(float x, float y, float z)
+{
+	Translate(glm::vec3(x, y, z));
+}
 
 void shape::Scale(glm::vec3 scale)
 {
@@ -168,6 +183,27 @@ void shape::ScaleSelf(glm::vec3 scale)
 
 void shape::CalculateCenter()
 {
+	center = glm::vec3(0, 0, 0);
+	for (auto vertex : model->vertices)
+	{
+		center += vertex;
+	}
+	center /= model->vertices.size();
+	
+	
+}
+
+void shape::CalculateSize()
+{
+	CalculateCenter();
+	size = glm::vec2(0,0);
+	for (auto vertex : model->vertices)
+	{
+		size.x += glm::abs(vertex.x - center.x);
+		size.y += glm::abs(vertex.y - center.y);
+	}
+	size /= model->vertices.size();
+	size *= 2;
 }
 
 void shape::Move(glm::vec3 target, float scalar)
@@ -187,4 +223,17 @@ void shape::Move(glm::vec3 target, float scalar)
 void shape::Move(float x, float y, float z, float scalar)
 {
 	Move(glm::vec3(x, y, z), scalar);
+}
+
+
+glm::vec4 shape::get_bb()
+{
+	CalculateCenter();
+	glm::vec4 bb = glm::vec4(
+		center.x - size.x / 2.f, //left
+		center.y + size.y / 2.f, //top
+		center.x + size.x / 2.f, //right
+		center.y - size.y / 2.f);//bottom
+	
+	return bb;
 }

@@ -1,5 +1,8 @@
 #include "pch.h"
+
+#include "Bar.h"
 #include "CameraManager.h"
+#include "CollisionManager.h"
 #include "mouseLine.h"
 #include "object.h"
 #include "Shader.h"
@@ -20,7 +23,9 @@ std::uniform_real_distribution<float> dis{ -1.f, 1.f };
 CameraManager* g_camera = nullptr;
 mouseLine* g_mouseLine = nullptr;
 vector<object*> g_objects;
+Bar* g_bar;
 bool to_init = true;
+float timer = 0;
 ///------ 함수
 
 GLvoid Reshape(int w, int h);
@@ -45,7 +50,7 @@ void main(int argc, char** argv)
 	glutInitWindowPosition(100, 0);
 	glutSetOption(GLUT_MULTISAMPLE, 8);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_MULTISAMPLE);
-	glutInitWindowSize(1600, 800);
+	glutInitWindowSize(800, 800);
 	glutCreateWindow("Example1");
 	//--- GLEW 초기화하기
 	glewExperimental = GL_TRUE;
@@ -81,7 +86,9 @@ void main(int argc, char** argv)
 
 	}
 	{
+		g_bar = new Bar;
 		g_objects.push_back(new object);
+		CollisionManager::Instance()->add_collision_pair("Bar:Object", g_bar, g_objects[0]);
 	}
 	glViewport(0, 0, 1600, 800);
 	glutDisplayFunc(draw);
@@ -107,11 +114,22 @@ GLvoid mouseWheel(int button, int dir, int x, int y)
 
 void update()
 {
+	timer += DT;
+	if (timer >= 1.5f)
+	{
+		g_objects.push_back(new object);
+		CollisionManager::Instance()->add_collision_pair("Bar:Object", nullptr, g_objects.back());
+		timer = 0;
+
+	}
+
+	g_bar->update();
 	for (auto object : g_objects)
 	{
 		object->update();
 	}
 	RemoveObject();
+	CollisionManager::Instance()->handle_collision();
 }
 
 void draw()
@@ -153,7 +171,7 @@ void draw()
 			object->draw();
 		}
 	}
-
+	g_bar->draw();
 
 	glutSwapBuffers();
 }
@@ -164,9 +182,7 @@ void RemoveObject()
 	{
 		if (obj->is_out())
 		{
-
 			g_objects.erase(std::remove(g_objects.begin(), g_objects.end(), obj), g_objects.end());
-			
 		}
 	}
 }
@@ -199,7 +215,7 @@ GLvoid MouseMotion(int x, int y) {
 		}
 	}
 	
-	gameLoop();
+	glutPostRedisplay();
 }
 GLvoid Mouse(int button, int state, int x, int y) {
 
@@ -207,15 +223,14 @@ GLvoid Mouse(int button, int state, int x, int y) {
 	float xpos = static_cast<float>(x);
 	float ypos = static_cast<float>(y);
 	math::old_mouse_convert_to_clip(xpos, ypos);
-	/*glm::mat4 inverseView = glm::inverse(g_camera->GetViewMatrix());
-	glm::vec2 worldPos = inverseView * glm::vec4(xpos, ypos, 1.0f, 1.0f);*/
+	glm::vec2 pos = glm::vec2(xpos, ypos);
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
 		if (g_mouseLine == nullptr)
 		{
 			g_mouseLine = new mouseLine;
 		}
-		glm::vec2 pos = glm::vec2(xpos, ypos);
+		
 		g_mouseLine->click(pos.x, pos.y, pos.x, pos.y);
 	}
 	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
@@ -231,14 +246,18 @@ GLvoid Mouse(int button, int state, int x, int y) {
 			g_mouseLine = nullptr;
 		}
 	}
+	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
+	{
+
+	}
 
 	
-	gameLoop();
+	glutPostRedisplay();
 }
 GLvoid Reshape(int w, int h)
 {
 	glViewport(0, 0, w, h);
-	gameLoop();
+	glutPostRedisplay();
 }
 
 //타이머
@@ -288,6 +307,13 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 			}
 		}
 		break;
+	case 's':
+	{
+		for (auto& obj : g_objects)
+		{
+			obj->StopMove(true);
+		}
+	}
 	default:
 		break;
 		//.....

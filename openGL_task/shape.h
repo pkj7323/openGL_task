@@ -23,19 +23,24 @@ public:
 	void RotateSelf(float theta, glm::vec3 basis);
 	void Rotate(float degree, glm::vec3 basis);
 	void Translate(glm::vec3 direction);
+	void Translate(float x, float y, float z);
 	void Scale(glm::vec3 scale);
 	void ScaleSelf(glm::vec3 scale);
 
 	void CalculateCenter();
+	void CalculateSize();
 	void Move(glm::vec3 target, float scalar);
 	void Move(float x, float y, float z, float scalar);
 
+	virtual void handle_collision(const string& group, shape* other) = 0;
 
-
-
-
+	glm::vec4 get_bb();
+	
 
 	//seter, geter
+	void set_size(glm::vec2 size) { this->size = size; }
+	glm::vec2 get_size() { return size; }
+
 	GLuint GetVAO() { return VAO; }
 
 	void SetWorldTrans(glm::mat4 worldTrans) { this->worldTransform = worldTrans; }
@@ -81,5 +86,8 @@ private:
 	glm::vec3 scale_factor;
 	glm::vec3 translate_factor;
 	glm::vec3 rotate_factor;
+
+	glm::vec3 center;
+	glm::vec2 size;
 };
 

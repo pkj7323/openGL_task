@@ -21,10 +21,14 @@ public:
 	void SetSpeed(float speed) { m_speed = speed; }
 	float GetSpeed() { return m_speed; }
 	void SetGravityScale(float scalar) { m_Gravity *= scalar; }
+	void StopMove(bool stop) { stopMove = stop; }
+
+	void handle_collision(const string& group, shape* other) override;
 private:
 	glm::vec2 m_dir;
 	float m_speed;
 	bool on_trace = false;
 	float m_Gravity;
+	bool stopMove = false;
 
 };

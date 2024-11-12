@@ -135,6 +135,7 @@
   <ItemGroup>
     <ClCompile Include="Bar.cpp" />
     <ClCompile Include="CameraManager.cpp" />
+    <ClCompile Include="CollisionManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mouseLine.cpp" />
     <ClCompile Include="object.cpp" />
@@ -153,6 +154,7 @@
   <ItemGroup>
     <ClInclude Include="Bar.h" />
     <ClInclude Include="CameraManager.h" />
+    <ClInclude Include="CollisionManager.h" />
     <ClInclude Include="define.h" />
     <ClInclude Include="mouseLine.h" />
     <ClInclude Include="object.h" />

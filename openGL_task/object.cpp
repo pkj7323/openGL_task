@@ -3,7 +3,7 @@
 
 #include "TimeManager.h"
 
-object::object() : m_dir{ glm::vec2(1,0) }, m_speed{ 0.5f }, m_Gravity{ Gravity / 40.f }
+object::object() : m_dir{ glm::vec2(1,0) }, m_speed{ 0.5f }, m_Gravity{ Gravity / 20.f }
 {
 	
 	std::default_random_engine dre{ std::random_device{}() };
@@ -19,7 +19,7 @@ object::object() : m_dir{ glm::vec2(1,0) }, m_speed{ 0.5f }, m_Gravity{ Gravity 
 			model->vertices.emplace_back(-0.25f, -0.25f, 0.0f);
 			model->vertices.emplace_back(0.25f, -0.25f, 0.0f);
 
-			SetTranslate(glm::vec3(-0.5, 0.5, 0));
+			
 
 			for (int i = 0;i < model->vertices.size(); i++)
 			{
@@ -28,6 +28,9 @@ object::object() : m_dir{ glm::vec2(1,0) }, m_speed{ 0.5f }, m_Gravity{ Gravity 
 
 			model->faces.emplace_back(0, 1, 2);
 			model->faces.emplace_back(0, 2, 3);
+			CalculateSize();
+			Translate(-0.5, 1, 0);
+			SetDir(glm::vec2(1, 0));
 		}
 		break;
 	case 2:
@@ -48,6 +51,9 @@ object::object() : m_dir{ glm::vec2(1,0) }, m_speed{ 0.5f }, m_Gravity{ Gravity 
 			model->faces.emplace_back(0, 1, 2);
 			model->faces.emplace_back(0, 2, 3);
 			model->faces.emplace_back(0, 3, 4);
+			CalculateSize();
+			Translate(0.5, 1, 0);
+			SetDir(glm::vec2(-1, 0));
 		}
 		break;
 	case 3:
@@ -64,6 +70,8 @@ object::object() : m_dir{ glm::vec2(1,0) }, m_speed{ 0.5f }, m_Gravity{ Gravity 
 
 			// 삼각형 면 정의
 			model->faces.emplace_back(0, 1, 2);
+			Translate(-0.5, 1, 0);
+			CalculateSize();
 		}
 		break;
 	case 4:
@@ -85,6 +93,9 @@ object::object() : m_dir{ glm::vec2(1,0) }, m_speed{ 0.5f }, m_Gravity{ Gravity 
 			model->faces.emplace_back(0, 2, 3);
 			model->faces.emplace_back(0, 3, 4);
 			model->faces.emplace_back(0, 4, 5);
+			Translate(0.5, 1, 0);
+			SetDir(glm::vec2(-1, 0));
+			CalculateSize();
 		}
 		break;
 	default:
@@ -104,6 +115,7 @@ object::~object()
 void object::draw()
 {
 	shape::draw();
+
 	if (on_trace)
 	{
 		glBindVertexArray(GetVAO());
@@ -132,7 +144,8 @@ void object::draw()
 
 void object::update()
 {
-	move();
+	if (!stopMove)
+		move();
 	shape::update();
 	
 }
@@ -159,9 +172,9 @@ bool object::is_out()
 	outCheck.resize(model->vertices.size(),false);
 	for (int i = 0; i < model->vertices.size();++i)
 	{
-		auto translateTransform = glm::translate(glm::mat4(1.0f), GetTranslate());
-		auto vertex = glm::vec3(translateTransform * glm::vec4(model->vertices[i],1.0f));
-		if (vertex.x > 1.0f || vertex.x < -1.0f || vertex.y > 1.0f || vertex.y < -1.0f)
+		auto worldMatrix = GetWorldTrans();
+		auto vertex = glm::vec3(worldMatrix * glm::vec4(model->vertices[i],1.0f));
+		if (vertex.x > 1.5f || vertex.x < -1.5f || vertex.y > 1.5f || vertex.y < -1.5f)
 		{
 			outCheck[i] = true;
 		}
@@ -174,4 +187,13 @@ bool object::is_out()
 	isOut = outCheck[0];
 	
 	return isOut;
+}
+
+void object::handle_collision(const string& group, shape* other)
+{
+	if (group == "Bar:Object")
+	{
+		stopMove = true;
+		this->m_Gravity = 0;
+	}
 }

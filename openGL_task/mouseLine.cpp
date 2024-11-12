@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "mouseLine.h"
 
+#include "CollisionManager.h"
 #include "object.h"
 
 mouseLine::mouseLine()
@@ -114,12 +115,11 @@ void mouseLine::collisionCheck(vector<object*>& objects)
     {
         object* obj = *it;
         intersect_points.clear();
-
+        glm::mat4 worldMatrix = obj->GetWorldTrans();
         for (size_t i = 0; i < obj->GetModel()->vertices.size(); i++)
         {
-            glm::mat4 translateTransform = glm::translate(glm::mat4(1.0f), obj->GetTranslate());
-            auto p1 = glm::vec2(translateTransform * glm::vec4(obj->GetModel()->vertices[i], 1.0f));
-            auto p2 = glm::vec2(translateTransform * glm::vec4(obj->GetModel()->vertices[(i + 1) % obj->GetModel()->vertices.size()], 1.0f));
+            auto p1 = glm::vec2(worldMatrix * glm::vec4(obj->GetModel()->vertices[i], 1.0f));
+            auto p2 = glm::vec2(worldMatrix * glm::vec4(obj->GetModel()->vertices[(i + 1) % obj->GetModel()->vertices.size()], 1.0f));
             if (math::intersect(glm::vec2(x1, y1), glm::vec2(x2, y2), p1, p2))
             {
                 glm::vec2 intersect_new_vertex = intersection_point(glm::vec2(x1, y1), glm::vec2(x2, y2), p1, p2);
@@ -134,20 +134,39 @@ void mouseLine::collisionCheck(vector<object*>& objects)
 
         if (intersect_points.size() >= 2)
         {
+            glm::mat4 temp = glm::inverse(worldMatrix);// 마우스 좌표만 다시 원래 좌표 값이랑 똑같게 해주면 됨
+            for (auto& point : intersect_points)
+            {
+                point.point = glm::vec2(temp * glm::vec4(point.point, 0, 1.0f));
+                cout << "변환된 선과 만나는 좌표: ";
+				cout << point.point.x << "," << point.point.y << endl;
+            }
+            /*
+            for (auto v : obj->GetModel()->vertices)
+            {
+                cout << "진짜 원래 도형" << "(" << v.x << "," << v.y << ")" << endl;
+            }
+            cout << endl;
+            for (auto v : obj->GetModel()->vertices)
+            {
+                v = worldMatrix * glm::vec4(v, 1.0f);
+                cout << "변환된 도형" << "(" << v.x << "," << v.y << ")" << endl;
+            }
+            cout << endl;*///월드 행렬를 굳이 곱해줄 필요가 없네 어차피 정점 찾으면 알아서 변환되네
             vector<glm::vec3> new_vertices1, new_vertices2;
-
+            
             // Create first polygon
             for (int i = 0; i < obj->GetModel()->vertices.size(); ++i)
             {
-                new_vertices1.emplace_back(obj->GetModel()->vertices[i]);
+                new_vertices1.emplace_back(glm::vec4(obj->GetModel()->vertices[i], 1.0f));
                 if (i == intersect_points.front().index1)
                 {
                     new_vertices1.emplace_back(intersect_points.front().point, 0.0f);
                     new_vertices1.emplace_back(intersect_points.back().point, 0.0f);
-                    for (int j = intersect_points.back().index2; j != intersect_points.front().index1; 
+                    for (int j = intersect_points.back().index2; j != intersect_points.front().index1;
                         j = (j + 1) % obj->GetModel()->vertices.size())
                     {
-                        new_vertices1.emplace_back(obj->GetModel()->vertices[j]);
+                        new_vertices1.emplace_back(glm::vec4(obj->GetModel()->vertices[j], 1.0f));
                     }
                     break;
                 }
@@ -155,10 +174,10 @@ void mouseLine::collisionCheck(vector<object*>& objects)
                 {
                     new_vertices1.emplace_back(intersect_points.back().point, 0.0f);
                     new_vertices1.emplace_back(intersect_points.front().point, 0.0f);
-                    for (int j = intersect_points.front().index2; j != intersect_points.back().index1; 
+                    for (int j = intersect_points.front().index2; j != intersect_points.back().index1;
                         j = (j + 1) % obj->GetModel()->vertices.size())
                     {
-                        new_vertices1.emplace_back(obj->GetModel()->vertices[j]);
+                        new_vertices1.emplace_back( glm::vec4(obj->GetModel()->vertices[j], 1.0f));
                     }
                     break;
                 }
@@ -168,7 +187,7 @@ void mouseLine::collisionCheck(vector<object*>& objects)
             for (int j = intersect_points.front().index2; j != intersect_points.back().index2;
                 j = (j + 1) % obj->GetModel()->vertices.size())
             {
-                new_vertices2.emplace_back(obj->GetModel()->vertices[j]);
+                new_vertices2.emplace_back( glm::vec4(obj->GetModel()->vertices[j],1.0f));
             }
             new_vertices2.emplace_back(intersect_points.back().point, 0.0f);
 
@@ -182,54 +201,71 @@ void mouseLine::collisionCheck(vector<object*>& objects)
                 std::reverse(new_vertices2.begin(), new_vertices2.end());
             }
 
+            
+            std::default_random_engine dre{ std::random_device{}() };
+            std::uniform_real_distribution<float> colorRd{ 0.f, 1.f };
+            // Update the object with the first polygon
+			
+            CollisionManager::Instance()->remove_collision_object(obj);
+            objects.erase(it);
+            delete obj;
+			obj = new object();
+            obj->GetModel()->vertices.clear();
+            obj->GetModel()->vertices = new_vertices1;
+            obj->GetModel()->faces.clear();
+            obj->GetModel()->colors.clear();
+            for (int i = 0; i < new_vertices1.size(); ++i)
             {
-                std::default_random_engine dre{ std::random_device{}() };
-                std::uniform_real_distribution<float> colorRd{ 0.f, 1.f };
-                // Update the object with the first polygon
-                obj->GetModel()->vertices.clear();
-                obj->GetModel()->vertices = new_vertices1;
-                obj->GetModel()->faces.clear();
-                obj->GetModel()->colors.clear();
-                for (int i = 0; i < new_vertices1.size(); ++i)
-                {
-                    obj->GetModel()->colors.emplace_back(colorRd(dre), colorRd(dre), colorRd(dre));
-                }
-                for (int i = 0; i < new_vertices1.size() - 1; ++i)
-                {
-                    obj->GetModel()->faces.emplace_back(0, (i + 1) % new_vertices1.size(), (i + 2) % new_vertices1.size());
-                }
-                for (auto& vertex : obj->GetModel()->vertices)
-                {
-                    cout << "원래 도형" << "(" << vertex.x << "," << vertex.y << ")" << endl;
-                }
-                obj->SetGravityScale(8.f);
-                obj->UpdateBuffer();
-                cout << endl;
-                cout << endl;
-                cout << endl;
-                // Create a new object for the second polygon
-                object* new_obj = new object();
-                new_obj->GetModel()->vertices = new_vertices2;
-                new_obj->GetModel()->faces.clear();
-                new_obj->GetModel()->colors.clear();
-                for (int i = 0; i < new_vertices2.size(); ++i)
-                {
-                    new_obj->GetModel()->colors.emplace_back(colorRd(dre), colorRd(dre), colorRd(dre));
-                }
-                for (int i = 0; i < new_vertices2.size() - 1; ++i)
-                {
-                    new_obj->GetModel()->faces.emplace_back(0, (i + 1) % new_vertices2.size(), (i + 2) % new_vertices2.size());
-                }
-                for (auto& vertex : new_obj->GetModel()->vertices)
-                {
-                    cout << "새로운 도형 " << "(" << vertex.x << "," << vertex.y << ")" << endl;
-                }
-                new_obj->UpdateBuffer();
-                new_obj->SetDir(-obj->GetDir());
-                new_obj->SetGravityScale(8.f);
-                objects.push_back(new_obj);
+                obj->GetModel()->colors.emplace_back(colorRd(dre), colorRd(dre), colorRd(dre));
             }
+            for (int i = 0; i < new_vertices1.size() - 1; ++i)
+            {
+                obj->GetModel()->faces.emplace_back(0, (i + 1) % new_vertices1.size(), (i + 2) % new_vertices1.size());
+            }
+            for (auto& vertex : obj->GetModel()->vertices)
+            {
+                cout << "원래 도형" << "(" << vertex.x << "," << vertex.y << ")" << endl;
+            }
+            obj->SetGravityScale(8.f);
+            obj->CalculateSize();
+            obj->UpdateBuffer();
+            CollisionManager::Instance()->add_collision_pair("Bar:Object", nullptr, obj);
+			objects.push_back(obj);
+            cout << endl;
+            cout << endl;
+            cout << endl;
 
+
+
+
+
+
+            // Create a new object for the second polygon
+            object* new_obj = new object();
+            new_obj->GetModel()->vertices = new_vertices2;
+            new_obj->GetModel()->faces.clear();
+            new_obj->GetModel()->colors.clear();
+            for (int i = 0; i < new_vertices2.size(); ++i)
+            {
+                new_obj->GetModel()->colors.emplace_back(colorRd(dre), colorRd(dre), colorRd(dre));
+            }
+            for (int i = 0; i < new_vertices2.size() - 1; ++i)
+            {
+                new_obj->GetModel()->faces.emplace_back(0, (i + 1) % new_vertices2.size(), (i + 2) % new_vertices2.size());
+            }
+            for (auto& vertex : new_obj->GetModel()->vertices)
+            {
+                cout << "새로운 도형 " << "(" << vertex.x << "," << vertex.y << ")" << endl;
+            }
+            new_obj->SetDir(-obj->GetDir());
+            new_obj->SetGravityScale(8.f);
+			new_obj->CalculateSize();
+            new_obj->UpdateBuffer();
+            
+            objects.push_back(new_obj);
+            new_obj->update();
+            
+            CollisionManager::Instance()->add_collision_pair("Bar:Object", nullptr, new_obj);
             break;
         }
 

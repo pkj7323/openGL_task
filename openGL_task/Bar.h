@@ -10,5 +10,5 @@ public:
 	void draw();
 	void update();
 
-	void CollisionCheck();
+	void handle_collision(const string& group, shape* other) override;
 };

@@ -34,6 +34,9 @@
     <Filter Include="Manger">
       <UniqueIdentifier>{37f95138-6f81-4d6e-9df6-7fe07a28d77c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="collision">
+      <UniqueIdentifier>{294b5314-d2a6-417c-ad43-632611369c1e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -62,6 +65,9 @@
     </ClCompile>
     <ClCompile Include="Bar.cpp">
       <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="CollisionManager.cpp">
+      <Filter>collision</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -99,6 +105,9 @@
     </ClInclude>
     <ClInclude Include="Bar.h">
       <Filter>object</Filter>
+    </ClInclude>
+    <ClInclude Include="CollisionManager.h">
+      <Filter>collision</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
