@@ -34,6 +34,7 @@ void CollisionManager::handle_collision()
 		const string& group = pair.first;
 		auto& pairs = pair.second;
 		for (auto* a : pairs[0])
+
 		{
 			for (auto* b : pairs[1])
 			{
