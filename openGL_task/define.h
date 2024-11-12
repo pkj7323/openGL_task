@@ -164,3 +164,7 @@ struct intersection
 	UINT index1;
 	UINT index2;
 };
+
+#define Gravity 9.8f
+#define DT TimeManager::Instance()->GetDeltaTime()
+#define PI 3.14159265358979323846

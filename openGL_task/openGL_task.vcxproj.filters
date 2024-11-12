@@ -31,6 +31,9 @@
     <Filter Include="object">
       <UniqueIdentifier>{2dc0f894-10a7-456f-a27e-ebb2ba2a2e4f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Manger">
+      <UniqueIdentifier>{37f95138-6f81-4d6e-9df6-7fe07a28d77c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -52,6 +55,12 @@
       <Filter>object</Filter>
     </ClCompile>
     <ClCompile Include="object.cpp">
+      <Filter>object</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeManager.cpp">
+      <Filter>Manger</Filter>
+    </ClCompile>
+    <ClCompile Include="Bar.cpp">
       <Filter>object</Filter>
     </ClCompile>
   </ItemGroup>
@@ -83,6 +92,12 @@
       <Filter>object</Filter>
     </ClInclude>
     <ClInclude Include="object.h">
+      <Filter>object</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeManager.h">
+      <Filter>Manger</Filter>
+    </ClInclude>
+    <ClInclude Include="Bar.h">
       <Filter>object</Filter>
     </ClInclude>
   </ItemGroup>

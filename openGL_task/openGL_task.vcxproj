@@ -133,6 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bar.cpp" />
     <ClCompile Include="CameraManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mouseLine.cpp" />
@@ -143,12 +144,14 @@
     </ClCompile>
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="shape.cpp" />
+    <ClCompile Include="TimeManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment.glsl" />
     <None Include="vertex.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bar.h" />
     <ClInclude Include="CameraManager.h" />
     <ClInclude Include="define.h" />
     <ClInclude Include="mouseLine.h" />
@@ -156,6 +159,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="shape.h" />
+    <ClInclude Include="TimeManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

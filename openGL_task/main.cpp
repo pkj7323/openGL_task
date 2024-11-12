@@ -3,7 +3,7 @@
 #include "mouseLine.h"
 #include "object.h"
 #include "Shader.h"
-
+#include "TimeManager.h"
 
 
 /// 요 아래에 헤더 파일 추가
@@ -20,6 +20,7 @@ std::uniform_real_distribution<float> dis{ -1.f, 1.f };
 CameraManager* g_camera = nullptr;
 mouseLine* g_mouseLine = nullptr;
 vector<object*> g_objects;
+bool to_init = true;
 ///------ 함수
 
 GLvoid Reshape(int w, int h);
@@ -35,6 +36,7 @@ GLvoid mouseWheel(int button, int dir, int x, int y);
 GLvoid gameLoop();
 void update();
 void draw();
+void RemoveObject();
 ///------ 함수
 void main(int argc, char** argv)
 {
@@ -109,6 +111,7 @@ void update()
 	{
 		object->update();
 	}
+	RemoveObject();
 }
 
 void draw()
@@ -155,12 +158,30 @@ void draw()
 	glutSwapBuffers();
 }
 
+void RemoveObject()
+{
+	for (auto& obj : g_objects)
+	{
+		if (obj->is_out())
+		{
+
+			g_objects.erase(std::remove(g_objects.begin(), g_objects.end(), obj), g_objects.end());
+			
+		}
+	}
+}
+
 GLvoid gameLoop()
 {
-	//TODO: 객체의 업데이트 함수 호출
+	if (to_init)
+	{
+		TimeManager::Instance()->init();
+		to_init = false;
+	}
+	
 	update();
 	draw();
-	
+	TimeManager::Instance()->update();
 }
 
 GLvoid MouseMotion(int x, int y) {
@@ -239,7 +260,34 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	case 'q':
 		glutDestroyWindow(glutGetWindow());
 		break;
-	
+	case 'l':
+		for (auto& obj : g_objects)
+		{
+			obj->SetMode(GL_LINE_STRIP);
+		}
+		break;
+	case 't':
+		for (auto& obj : g_objects)
+		{
+			obj->SetMode(GL_TRIANGLES);
+		}
+		break;
+	case 'o':
+		{
+			for (auto& obj : g_objects)
+			{
+				obj->onTrace(true);
+			}
+		}
+		break;
+	case 'f':
+		{
+			for (auto& obj : g_objects)
+			{
+				obj->onTrace(false);
+			}
+		}
+		break;
 	default:
 		break;
 		//.....
