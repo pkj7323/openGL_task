@@ -3,7 +3,7 @@
 
 #include "TimeManager.h"
 
-Bar::Bar() : speed{ 0.01f }, dir{ glm::vec2(1,0) }
+Bar::Bar() : speed{ 0.5f }, dir{ glm::vec2(1,0) }
 {
 	auto model = GetModel();
 	model->vertices.emplace_back(0.5f, -0.7f, 0.0f);
@@ -49,6 +49,7 @@ void Bar::update()
 void Bar::move()
 {
 	auto model = GetModel();
+	SetOffset(glm::vec2(dir.x * speed * DT, dir.y * speed * DT));
 	for (auto& v : model->vertices)
 	{
 		v.x += dir.x * speed * DT;

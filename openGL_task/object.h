@@ -4,6 +4,7 @@
 class  object : public shape
 {
 public:
+	//TODO:복사 생성자 만들기
 	object();
 	~object();
 
@@ -26,7 +27,10 @@ public:
 	void handle_collision(const string& group, shape* other) override;
 
 	bool GetIsKilled() { return isKilled; }
+
+	void onBarMove();
 private:
+	
 	glm::vec2 m_dir;
 	glm::vec2 m_speed;
 	bool on_trace = false;
@@ -35,4 +39,5 @@ private:
 	bool onKillTimer = false;
 	float killTimer;
 	bool isKilled=false;
+	bool onBar = false;
 };

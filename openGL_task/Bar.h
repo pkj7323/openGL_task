@@ -5,6 +5,8 @@ class  Bar : public shape
 {
 	float speed;
 	glm::vec2 dir;
+
+	
 public:
 	Bar();
 	~Bar();

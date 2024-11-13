@@ -145,7 +145,15 @@ void object::draw()
 void object::update()
 {
 	if (!stopMove)
-		move();
+	{
+		if (onBar)
+		{
+			onBarMove();
+		}else
+		{
+			move();
+		}
+	}
 	if(onKillTimer)
 	{
 		killTimer += DT;
@@ -213,8 +221,22 @@ void object::handle_collision(const string& group, shape* other)
 {
 	if (group == "Bar:Object")
 	{
-		
+		SetOffset(other->GetOffset());
+		onBar = true;
 		onKillTimer = true;
 		this->m_Gravity = 0;
 	}
+}
+
+void object::onBarMove()
+{
+	
+	for (auto& vertex : GetModel()->vertices)
+	{
+		vertex.x += GetOffset().x;
+		vertex.y += GetOffset().y;
+	}
+
+
+	UpdateBuffer();
 }

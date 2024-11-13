@@ -67,6 +67,9 @@ public:
 	GLint GetUniformWorld() const { return uniformWorld; }
 	GLint GetUniformView() const { return uniformView; }
 	GLint GetUniformProjection() const { return uniformProjection; }
+
+	void SetOffset(glm::vec2 offset) { this->m_offset = offset; }
+	glm::vec2 GetOffset() { return m_offset; }
 private:
 	GLuint VAO;
 	GLuint VBO_pos;
@@ -89,5 +92,7 @@ private:
 
 	glm::vec3 center;
 	glm::vec2 size;
+
+	glm::vec2 m_offset;
 };
 
