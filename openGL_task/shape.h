@@ -8,6 +8,7 @@ protected:
 
 
 public:
+	shape(const shape& other) = delete;
 	shape();
 	shape(const string& path);
 	virtual ~shape();

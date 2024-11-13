@@ -249,7 +249,7 @@ void mouseLine::collisionCheck(vector<object*>& objects)
 
 
             // Create a new object for the second polygon
-            object* new_obj = new object();
+            object* new_obj = new object(*obj);
 
             for (auto vertex : new_vertices2)
             {

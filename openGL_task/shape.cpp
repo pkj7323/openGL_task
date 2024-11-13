@@ -76,6 +76,8 @@ void shape::InitBuffer()
 }
 
 
+
+
 shape::~shape()
 {
 	

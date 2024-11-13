@@ -5,6 +5,7 @@ class  object : public shape
 {
 public:
 	//TODO:복사 생성자 만들기
+	object(const object& obj);
 	object();
 	~object();
 

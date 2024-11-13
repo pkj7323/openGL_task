@@ -3,6 +3,19 @@
 #include "CollisionManager.h"
 #include "TimeManager.h"
 
+object::object(const object& other)
+	: 
+	m_dir(other.m_dir),
+	m_speed(other.m_speed),
+	on_trace(other.on_trace),
+	m_Gravity(other.m_Gravity),
+	stopMove(other.stopMove),
+	onKillTimer(other.onKillTimer),
+	killTimer(other.killTimer),
+	isKilled(other.isKilled),
+	onBar(other.onBar)
+{
+}
 object::object() : m_dir{ glm::vec2(1,0) }, m_speed{ 0.5f }, m_Gravity{ Gravity / 20.f }
 {
 	
