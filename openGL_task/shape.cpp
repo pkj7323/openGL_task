@@ -130,7 +130,7 @@ void shape::draw()
 	assert(EBO != NULL && "EBO ¼³Á¤¾ÈµÊ");
 
 	glBindVertexArray(VAO);
-	{
+	/*{
 		glBegin(GL_LINE_LOOP);
 		glColor3f(1.0f, 0.0f, 0.0f);
 		glVertex3f(get_bb().z, get_bb().y,0);
@@ -138,7 +138,7 @@ void shape::draw()
 		glVertex3f(get_bb().x, get_bb().w,0);
 		glVertex3f(get_bb().z, get_bb().w,0);
 		glEnd();
-	}
+	}*/
 	glDrawElements(mode, 3 * model->faces.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
