@@ -14,8 +14,8 @@ public:
 	virtual ~shape();
 	void UpdateBuffer();//뭔가 위치를 바꾸려면 matrix 바꿔서 호출 이 함수는 아마 호출할 일 없을것
 
-	virtual void update();//월드행렬 계산
-	virtual void draw();//uniform 변수 설정, 그리기
+	void update();//월드행렬 계산
+	void draw();//uniform 변수 설정, 그리기
 
 	void SetParentTransform(glm::mat4 matrix) { this->parentTransform = matrix; }
 	glm::mat4 GetParentTransform() { return this->parentTransform; }
@@ -39,6 +39,8 @@ public:
 	
 
 	//seter, geter
+	glm::vec3 GetCenter() { return center; }
+
 	void set_size(glm::vec2 size) { this->size = size; }
 	glm::vec2 get_size() { return size; }
 

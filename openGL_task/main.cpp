@@ -22,8 +22,9 @@ vector<object*> g_objects;
 Bar* g_bar;
 bool to_init = true;
 float timer = 0;
-
-
+int g_mode = GL_TRIANGLES;
+bool trace_on = false;
+float speed = 0.0f;
 ///------ ÇÔ¼ö
 
 GLvoid Reshape(int w, int h);
@@ -129,9 +130,11 @@ void update()
 			new_obj->Translate(glm::vec3(-0.5, 1, 0));
 			new_obj->SetDir(glm::vec2(1, 0));
 		}
-		
+		new_obj->SetMode(g_mode);
+		new_obj->onTrace(trace_on);
+		new_obj->plusSpeed(speed);
 		g_objects.push_back(new_obj);
-		CollisionManager::Instance()->add_collision_pair("Bar:Object", nullptr, new_obj);
+		//CollisionManager::Instance()->add_collision_pair("Bar:Object", nullptr, new_obj);
 		timer = 0;
 
 	}
@@ -309,18 +312,21 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		glutDestroyWindow(glutGetWindow());
 		break;
 	case 'l':
+		g_mode = GL_LINE_STRIP;
 		for (auto& obj : g_objects)
 		{
 			obj->SetMode(GL_LINE_STRIP);
 		}
 		break;
 	case 't':
+		g_mode = GL_TRIANGLES;
 		for (auto& obj : g_objects)
 		{
 			obj->SetMode(GL_TRIANGLES);
 		}
 		break;
 	case 'o':
+		trace_on = true;
 		{
 			for (auto& obj : g_objects)
 			{
@@ -329,6 +335,7 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		}
 		break;
 	case 'f':
+		trace_on = false;
 		{
 			for (auto& obj : g_objects)
 			{
@@ -343,6 +350,32 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 			obj->StopMove(true);
 		}
 	}
+	break;
+	case '+':
+		{
+		speed += 0.1f;
+		for (auto& obj : g_objects)
+		{
+			obj->plusSpeed(0.1f);
+		}
+		}
+		break;
+	case '-':
+		{
+			if (speed <= 0.0f)
+			{
+				break;
+			}
+			else
+			{
+				speed -= 0.1f;
+				for (auto& obj : g_objects)
+				{
+					obj->plusSpeed(-0.1f);
+				}
+			}
+		}
+		break;
 	default:
 		break;
 		//.....

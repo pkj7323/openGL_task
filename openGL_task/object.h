@@ -30,10 +30,13 @@ public:
 	bool GetIsKilled() { return isKilled; }
 
 	void onBarMove();
+
+	void plusSpeed(float speed) { m_speed += speed; }
 private:
 	
 	glm::vec2 m_dir;
 	glm::vec2 m_speed;
+	float m_theta;
 	bool on_trace = false;
 	float m_Gravity;
 	bool stopMove = false;

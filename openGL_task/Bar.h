@@ -15,4 +15,6 @@ public:
 	void update();
 	void move();
 	void handle_collision(const string& group, shape* other) override;
+
+	void plusSpeed(float speed) { this->speed += speed; }
 };

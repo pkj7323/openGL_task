@@ -125,34 +125,45 @@ object::~object()
 
 void object::draw()
 {
-	shape::draw();
+    shape::draw();
 
-	if (on_trace)
-	{
-		glBindVertexArray(GetVAO());
-		
-		glm::vec3 v{};
-		auto model = GetModel();
-		for (auto vertex : model->vertices)
-		{
-			v += vertex;
-		}
-		v /= model->vertices.size();
-		
-		glBegin(GL_LINE_STRIP);
-		glColor3f(1.0f, 0.0f, 1.0f);
-		auto speed = m_speed;
-		for (int i = 0 ; i < 100; ++i)
-		{
-			v.x += m_dir.x * DT * m_speed.x;
-			v.y -= m_speed.y * DT;
-			m_speed.y += m_Gravity * DT;
-			glVertex3f(v.x, v.y, 0.0f);
-		}
-		glEnd();
-		
-		glBindVertexArray(0);
-	}
+    if (on_trace)
+    {
+        glBindVertexArray(GetVAO());
+
+        glm::vec3 v{};
+        auto model = GetModel();
+        for (auto vertex : model->vertices)
+        {
+            v += vertex;
+        }
+        v /= model->vertices.size();
+        auto dir = glm::normalize(m_dir);
+
+        glBegin(GL_LINE_STRIP);
+        glColor3f(1.0f, 0.0f, 1.0f);
+        auto speed = m_speed;
+        float theta = m_theta;
+        
+		int i = 1;
+		CalculateCenter();
+        while (v.x > -1.5f && v.x < 1.5f && v.y > -1.5f && v.y < 1.5f) // 화면 끝까지 그립니다.
+        {
+			
+			float t = i * 0.1f; // 시간 단위로 증가
+			float rotate_x = v.x * glm::cos(glm::radians(theta * t )) - v.y * glm::sin(glm::radians(theta * t ));
+			float rotate_y = v.x * glm::sin(glm::radians(theta * t )) + v.y * glm::cos(glm::radians(theta * t ));
+
+			v.x = rotate_x + dir.x * t * speed.x;
+			v.y = rotate_y - (speed.y * t + 0.5f * m_Gravity * t * t);
+
+			glVertex2f(v.x, v.y);
+			i++;
+        }
+        glEnd();
+
+        glBindVertexArray(0);
+    }
 }
 
 void object::update()
@@ -195,13 +206,27 @@ void object::move()
 	}
 	m_dir = glm::normalize(m_dir);
 	glm::vec3 dir = glm::vec3(m_dir, 0.0f);
+	CalculateCenter();
+	auto center = GetCenter();
+	float theta = 0.05f;
 	for (auto& vertex : model->vertices)
 	{
+		
+		auto rotate_x = vertex.x;
+		auto rotate_y = vertex.y;
+
+		rotate_x = vertex.x * glm::cos(glm::radians(theta)) - vertex.y * glm::sin(glm::radians(theta));
+		rotate_y = vertex.x * glm::sin(glm::radians(theta)) + vertex.y * glm::cos(glm::radians(theta));
+
+
+		vertex.x = rotate_x;
+		vertex.y = rotate_y;
+
 		vertex.x += dir.x * DT * m_speed.x;
 		vertex.y -= m_speed.y * DT;
 		m_speed.y += m_Gravity * DT;
 	}
-
+	m_theta += theta;
 
 	UpdateBuffer();
 }
@@ -238,6 +263,14 @@ void object::handle_collision(const string& group, shape* other)
 		onBar = true;
 		onKillTimer = true;
 		this->m_Gravity = 0;
+		onTrace(false);
+	}else
+	{
+		SetOffset(glm::vec2(0, 0));
+		onBar = false;
+		onKillTimer = false;
+		this->m_Gravity = Gravity / 20.f;
+
 	}
 }
 
