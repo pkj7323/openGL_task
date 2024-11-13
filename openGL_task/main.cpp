@@ -1,5 +1,4 @@
 #include "pch.h"
-
 #include "Bar.h"
 #include "CameraManager.h"
 #include "CollisionManager.h"
@@ -8,10 +7,7 @@
 #include "Shader.h"
 #include "TimeManager.h"
 
-
 /// 요 아래에 헤더 파일 추가
-
-
 
 ///------전역변수
 std::random_device rd;
@@ -26,6 +22,8 @@ vector<object*> g_objects;
 Bar* g_bar;
 bool to_init = true;
 float timer = 0;
+
+
 ///------ 함수
 
 GLvoid Reshape(int w, int h);
@@ -41,7 +39,10 @@ GLvoid mouseWheel(int button, int dir, int x, int y);
 GLvoid gameLoop();
 void update();
 void draw();
+void RemoveOutObject();
 void RemoveObject();
+
+
 ///------ 함수
 void main(int argc, char** argv)
 {
@@ -117,8 +118,20 @@ void update()
 	timer += DT;
 	if (timer >= 1.5f)
 	{
-		g_objects.push_back(new object);
-		CollisionManager::Instance()->add_collision_pair("Bar:Object", nullptr, g_objects.back());
+		object* new_obj = new object;
+		std::uniform_int_distribution<int> LR{ 0,1 };
+		if (LR(dre)==0)
+		{
+			new_obj->Translate(glm::vec3(0.5, 1, 0));
+			new_obj->SetDir(glm::vec2(-1, 0));
+		}else if (LR(dre) == 1)
+		{
+			new_obj->Translate(glm::vec3(-0.5, 1, 0));
+			new_obj->SetDir(glm::vec2(1, 0));
+		}
+		
+		g_objects.push_back(new_obj);
+		CollisionManager::Instance()->add_collision_pair("Bar:Object", nullptr, new_obj);
 		timer = 0;
 
 	}
@@ -128,6 +141,7 @@ void update()
 	{
 		object->update();
 	}
+	RemoveOutObject();
 	RemoveObject();
 	CollisionManager::Instance()->handle_collision();
 }
@@ -176,7 +190,7 @@ void draw()
 	glutSwapBuffers();
 }
 
-void RemoveObject()
+void RemoveOutObject()
 {
 	for (auto& obj : g_objects)
 	{
@@ -186,6 +200,21 @@ void RemoveObject()
 		}
 	}
 }
+void RemoveObject()
+{
+	for (auto& o : g_objects)
+	{
+		if (o->GetIsKilled())
+		{
+			delete o;
+			o = nullptr;
+			g_objects.erase(std::remove(g_objects.begin(), g_objects.end(), o), g_objects.end());
+			break;
+		}
+
+	}
+}
+
 
 GLvoid gameLoop()
 {

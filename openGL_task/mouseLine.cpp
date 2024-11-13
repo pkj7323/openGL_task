@@ -206,10 +206,10 @@ void mouseLine::collisionCheck(vector<object*>& objects)
             std::uniform_real_distribution<float> colorRd{ 0.f, 1.f };
             // Update the object with the first polygon
 			
-            CollisionManager::Instance()->remove_collision_object(obj);
+            /*CollisionManager::Instance()->remove_collision_object(obj);
             objects.erase(it);
             delete obj;
-			obj = new object();
+			obj = new object();*/
             obj->GetModel()->vertices.clear();
             obj->GetModel()->vertices = new_vertices1;
             obj->GetModel()->faces.clear();
@@ -226,11 +226,19 @@ void mouseLine::collisionCheck(vector<object*>& objects)
             {
                 cout << "원래 도형" << "(" << vertex.x << "," << vertex.y << ")" << endl;
             }
-            obj->SetGravityScale(8.f);
+            for (auto& point : new_vertices1)
+            {
+                point = worldMatrix * glm::vec4(point, 1.0f);
+                cout << "변환된 원래 도형의 점좌표 ";
+                cout<<"(" << point.x << "," << point.y <<")"<< endl;
+            }
+            obj->SetDir(glm::vec2(0, 0));
+            obj->SetGravityScale(2.f);
             obj->CalculateSize();
             obj->UpdateBuffer();
+			obj->update();
             CollisionManager::Instance()->add_collision_pair("Bar:Object", nullptr, obj);
-			objects.push_back(obj);
+			
             cout << endl;
             cout << endl;
             cout << endl;
@@ -242,6 +250,19 @@ void mouseLine::collisionCheck(vector<object*>& objects)
 
             // Create a new object for the second polygon
             object* new_obj = new object();
+
+            for (auto vertex : new_vertices2)
+            {
+                cout << "새로운 도형 " << "(" << vertex.x << "," << vertex.y << ")" << endl;
+            }
+            for (auto point : new_vertices2)
+            {
+				point = temp * glm::vec4(point,1.0f);
+                cout << "변환된 새로운 도형의 점좌표 ";
+                cout << point.x << "," << point.y << endl;
+            }
+
+			new_obj->GetModel()->vertices.clear();
             new_obj->GetModel()->vertices = new_vertices2;
             new_obj->GetModel()->faces.clear();
             new_obj->GetModel()->colors.clear();
@@ -253,19 +274,19 @@ void mouseLine::collisionCheck(vector<object*>& objects)
             {
                 new_obj->GetModel()->faces.emplace_back(0, (i + 1) % new_vertices2.size(), (i + 2) % new_vertices2.size());
             }
-            for (auto& vertex : new_obj->GetModel()->vertices)
-            {
-                cout << "새로운 도형 " << "(" << vertex.x << "," << vertex.y << ")" << endl;
-            }
-            new_obj->SetDir(-obj->GetDir());
-            new_obj->SetGravityScale(8.f);
+           
+            
+            new_obj->SetDir(glm::vec2(0,0));
+            new_obj->SetGravityScale(2.f);
+            new_obj->SetTranslate(obj->GetTranslate());
 			new_obj->CalculateSize();
             new_obj->UpdateBuffer();
-            
+			
             objects.push_back(new_obj);
-            new_obj->update();
+
             
             CollisionManager::Instance()->add_collision_pair("Bar:Object", nullptr, new_obj);
+           
             break;
         }
 

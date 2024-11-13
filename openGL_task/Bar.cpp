@@ -1,7 +1,9 @@
 ﻿#include "pch.h"
 #include "Bar.h"
 
-Bar::Bar()
+#include "TimeManager.h"
+
+Bar::Bar() : speed{ 0.01f }, dir{ glm::vec2(1,0) }
 {
 	auto model = GetModel();
 	model->vertices.emplace_back(0.5f, -0.7f, 0.0f);
@@ -33,6 +35,25 @@ void Bar::draw()
 void Bar::update()
 {
 	shape::update();
+	move();
+	if(GetModel()->vertices[0].x >= 1.0f)
+	{
+		dir.x = -1;
+	}
+	else if (GetModel()->vertices[1].x <= -1.0f)
+	{
+		dir.x = 1;
+	}
+}
+
+void Bar::move()
+{
+	auto model = GetModel();
+	for (auto& v : model->vertices)
+	{
+		v.x += dir.x * speed * DT;
+	}
+	UpdateBuffer();
 }
 
 void Bar::handle_collision(const string& group, shape* other)

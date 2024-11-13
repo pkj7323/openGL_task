@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "object.h"
-
+#include "CollisionManager.h"
 #include "TimeManager.h"
 
 object::object() : m_dir{ glm::vec2(1,0) }, m_speed{ 0.5f }, m_Gravity{ Gravity / 20.f }
@@ -29,8 +29,7 @@ object::object() : m_dir{ glm::vec2(1,0) }, m_speed{ 0.5f }, m_Gravity{ Gravity 
 			model->faces.emplace_back(0, 1, 2);
 			model->faces.emplace_back(0, 2, 3);
 			CalculateSize();
-			Translate(-0.5, 1, 0);
-			SetDir(glm::vec2(1, 0));
+			
 		}
 		break;
 	case 2:
@@ -52,8 +51,7 @@ object::object() : m_dir{ glm::vec2(1,0) }, m_speed{ 0.5f }, m_Gravity{ Gravity 
 			model->faces.emplace_back(0, 2, 3);
 			model->faces.emplace_back(0, 3, 4);
 			CalculateSize();
-			Translate(0.5, 1, 0);
-			SetDir(glm::vec2(-1, 0));
+			
 		}
 		break;
 	case 3:
@@ -70,7 +68,7 @@ object::object() : m_dir{ glm::vec2(1,0) }, m_speed{ 0.5f }, m_Gravity{ Gravity 
 
 			// 삼각형 면 정의
 			model->faces.emplace_back(0, 1, 2);
-			Translate(-0.5, 1, 0);
+			
 			CalculateSize();
 		}
 		break;
@@ -93,8 +91,8 @@ object::object() : m_dir{ glm::vec2(1,0) }, m_speed{ 0.5f }, m_Gravity{ Gravity 
 			model->faces.emplace_back(0, 2, 3);
 			model->faces.emplace_back(0, 3, 4);
 			model->faces.emplace_back(0, 4, 5);
-			Translate(0.5, 1, 0);
-			SetDir(glm::vec2(-1, 0));
+			
+			
 			CalculateSize();
 		}
 		break;
@@ -128,14 +126,16 @@ void object::draw()
 		}
 		v /= model->vertices.size();
 		
-		glBegin(GL_LINES);
+		glBegin(GL_LINE_STRIP);
 		glColor3f(1.0f, 0.0f, 1.0f);
-		glVertex3f(v.x, v.y, 0.0f);
-		
-		v.x += m_dir.x * DT * m_speed * 1000;
-		v.y -= m_Gravity * DT * 1000;
-		glVertex3f(v.x, v.y, 0.0f);
-		
+		auto speed = m_speed;
+		for (int i = 0 ; i < 100; ++i)
+		{
+			v.x += m_dir.x * DT * m_speed.x;
+			v.y -= m_speed.y * DT;
+			m_speed.y += m_Gravity * DT;
+			glVertex3f(v.x, v.y, 0.0f);
+		}
 		glEnd();
 		
 		glBindVertexArray(0);
@@ -146,6 +146,16 @@ void object::update()
 {
 	if (!stopMove)
 		move();
+	if(onKillTimer)
+	{
+		killTimer += DT;
+		if (killTimer >= 2.0f)
+		{
+			CollisionManager::Instance()->remove_collision_object(this);
+			isKilled = true;
+			
+		}
+	}
 	shape::update();
 	
 }
@@ -153,12 +163,22 @@ void object::update()
 void object::move()
 {
 	auto model = GetModel();
+	if (m_dir == glm::vec2(0,0))
+	{
+		for (auto& vertex : model->vertices)
+		{
+			vertex.y -= m_Gravity * DT;
+		}
+		UpdateBuffer();
+		return;
+	}
 	m_dir = glm::normalize(m_dir);
 	glm::vec3 dir = glm::vec3(m_dir, 0.0f);
 	for (auto& vertex : model->vertices)
 	{
-		vertex += dir * DT * m_speed;
-		vertex.y -= m_Gravity * DT;
+		vertex.x += dir.x * DT * m_speed.x;
+		vertex.y -= m_speed.y * DT;
+		m_speed.y += m_Gravity * DT;
 	}
 
 
@@ -193,7 +213,8 @@ void object::handle_collision(const string& group, shape* other)
 {
 	if (group == "Bar:Object")
 	{
-		stopMove = true;
+		
+		onKillTimer = true;
 		this->m_Gravity = 0;
 	}
 }
